@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Book;
 use App\Http\Resources\BookResource;
+use Validator;
 
 class BookController extends Controller
 {
@@ -40,7 +41,22 @@ class BookController extends Controller
      */
     public function store(Request $request)
     {
-        //
+
+        $input = $request->all();
+        $validator = Validator::make($input, [
+            "name" => "required|min:4",
+            "author" => "required|min:4|max:50",
+            "description" => "required|min:4|max:255",
+            "price" => "required",
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError("Validation Error", $validator->errors());
+        }
+
+        $book = Book::create($input);
+
+        return $this->sendResponse(new BookResource($book), "Book created successfully!");
     }
 
     /**
@@ -51,7 +67,8 @@ class BookController extends Controller
      */
     public function show($id)
     {
-        //
+        $book = Book::find($id);
+        return $this->sendResponse(new BookResource($book), "Book get successfully!");
     }
 
     /**
@@ -60,9 +77,8 @@ class BookController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
-        //
     }
 
     /**
@@ -74,7 +90,26 @@ class BookController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $input = $request->all();
+        $validator = Validator::make($input, [
+            "name" => "required|min:4",
+            "author" => "required|min:4|max:50",
+            "description" => "required|min:4|max:255",
+            "price" => "required",
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError("Validation Error", $validator->errors());
+        }
+
+        $book = Book::find($id);
+        $book->name = $input["name"];
+        $book->author = $input["author"];
+        $book->description = $input["description"];
+        $book->price = $input["price"];
+        $book->save();
+
+        return $this->sendResponse(new BookResource($book), "Book updated successfully!");
     }
 
     /**
@@ -85,6 +120,8 @@ class BookController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $book = Book::find($id);
+        $book->delete();
+        return $this->sendResponse([], "Book deleted Successfully!");
     }
 }
